@@ -1,24 +1,28 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
 
+import Nav from './Nav'
+
+import Recorder from './Recorder'
+import Intro from './Intro'
+import Confirm from './Confirm'
+
 function App() {
+  const [step, setStep] = useState('intro')
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <body>
+        <Nav toStep={setStep} />
+        {step === 'intro'?
+          <Intro toStep={setStep} />
+          : step === 'confirm'?
+          <Confirm toStep={setStep} />
+          : step === 'recorder'?
+          <Recorder toStep={setStep} />
+          : <></>
+        }
+      </body>
     </div>
   );
 }
