@@ -7,8 +7,8 @@ const Intro = (props) => {
   return (
     <div>
       <h2>Introduction</h2>
-      <div>here are some intro...</div>
-      <button onClick={_ => toStep('confirm')}>next</button>
+      <div style={{marginBottom: '1rem'}}>here are some intro...</div>
+      <button className='ctc-button' onClick={_ => toStep('confirm')}>next</button>
     </div>
   )
 }

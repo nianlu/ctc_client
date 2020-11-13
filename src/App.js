@@ -8,6 +8,7 @@ import Intro from './Intro'
 import Confirm from './Confirm'
 
 function App() {
+  const [user, setUser] = useState({group: 'non-native'})
   const [step, setStep] = useState('intro')
 
   return (
@@ -16,9 +17,9 @@ function App() {
       {step === 'intro'?
         <Intro toStep={setStep} />
         : step === 'confirm'?
-        <Confirm toStep={setStep} />
+        <Confirm toStep={setStep} onChangeGroup={v => setUser({group: v})} />
         : step === 'recorder'?
-        <Recorder toStep={setStep} />
+        <Recorder toStep={setStep} user={user} />
         : <></>
       }
     </div>

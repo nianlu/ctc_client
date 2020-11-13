@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { isBrowser, isMobile } from "react-device-detect";
 import { testget, testUpload } from './api';
 import * as api from './api';
 import Word from './Word';
@@ -75,7 +76,7 @@ const Recorder = () => {
     })
   }, [])
 
-  const start = () => {
+  const onStart = () => {
     setChunk()
     setLink()
     recorder && recorder.state === 'inactive' && recorder.start()
@@ -90,12 +91,12 @@ const Recorder = () => {
   //   setInfo('finished')
   // }
 
-  const stop = () => {
+  const onStop = () => {
     recorder && recorder.state === 'recording' && recorder.stop()
     console.log(recorder.state)
   }
 
-  const save = () => {
+  const onSave = () => {
     recorder && recorder.state === 'inactive' && 
     console.log(recorder.state)
     // console.log(chunk)
@@ -108,7 +109,7 @@ const Recorder = () => {
     console.log(audioURL)
   }
 
-  const upload = () => {
+  const onUpload = () => {
     console.log('upload')
     console.log(blob)
     setInfo('uploading')
@@ -126,19 +127,34 @@ const Recorder = () => {
     )
   }
 
+  const mobileButtonStyle = {
+    borderRadius: '50%',
+    height: '5rem',
+    width: '5rem',
+    fontSize: '1.2rem'
+  }
 
   return (
     <div>
-      {/* <h2>Recorder</h2> */}
       <Word />
-      <div>{info}</div>
-      {/* <div>{status}</div> */}
-      {status === 'stop'?
-        <button onClick={start}>start</button>
+      <div style={{marginBottom: '1rem'}}>{info}</div>
+      {isMobile?
+        <button className='ctc-mobile-record'
+          onTouchStart={status === 'stop'? onStart : _ => {}}
+          onTouchEnd={status === 'start'? onStop : _ => {}}
+        >
+          {status === 'stop'?
+            'start'
+          :
+            '...'
+          }
+        </button>
+      : status === 'stop'?
+        <button className='ctc-button' onClick={onStart}>start</button>
       : status === 'start'?
-        <button onClick={stop}>stop</button>
+        <button className='ctc-button' onClick={onStop}>stop</button>
       :
-        <button disabled={true} onClick={stop}>stop</button>
+        <button className='ctc-button' disabled={true} onClick={onStop}>stop</button>
       }
       {/* <button disabled={!link}><a href={link}>download</a></button>
       <button disabled={!link} onClick={upload}>upload</button> */}
