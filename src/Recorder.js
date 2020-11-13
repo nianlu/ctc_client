@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { testget, testUpload } from './api';
+import * as api from './api';
 import Word from './Word';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
@@ -11,7 +12,8 @@ const Recorder = () => {
   const [chunk, setChunk] = useState()
   const [blob, setBlob] = useState()
   const [link, setLink] = useState()
-  const [info, setInfo] = useState()
+  const [info, setInfo] = useState('ready')
+  const [status, setStatus] = useState('stop')
 
   // const handleSuccess = function(stream) {
   //   console.log('init rec')
@@ -44,12 +46,28 @@ const Recorder = () => {
         // console.log(e.data)
         setChunk(e.data)
         if (mediaRecorder.state === 'inactive') {
-          // const blob = new Blob(e.data, { type: 'audio/webm' });
+          // const testb = new Blob(e.data, { type: 'audio/webm' });
           console.log(e.data)
           setBlob(e.data)
           const audioURL = window.URL.createObjectURL(e.data);
-          setLink(audioURL)
-          console.log(audioURL)
+          // setLink(audioURL)
+          // console.log(audioURL)
+          setStatus('upload')
+          setInfo('uploading')
+          api.upload(
+            e.data,
+            {'User-Id': 1, 'File-Name': 'test', 'File-Type': e.data.type},
+            data => {
+              // console.log(data)
+              setStatus('stop')
+              setInfo('uploaded')
+            },
+            error => {
+              setStatus('stop')
+              setInfo('upload failed')
+              console.log(error)
+            }
+          )
         } else console.log('not finished')
       }
       setRecorder(mediaRecorder)
@@ -62,15 +80,19 @@ const Recorder = () => {
     setLink()
     recorder && recorder.state === 'inactive' && recorder.start()
     console.log(recorder.state)
+    setStatus('start')
     setInfo('recording')
   }
 
+  // const stop = () => {
+  //   recorder && recorder.state === 'recording' && recorder.stop()
+  //   console.log(recorder.state)
+  //   setInfo('finished')
+  // }
 
   const stop = () => {
     recorder && recorder.state === 'recording' && recorder.stop()
     console.log(recorder.state)
-    // console.log(chunk)
-    setInfo('finished')
   }
 
   const save = () => {
@@ -107,14 +129,19 @@ const Recorder = () => {
 
   return (
     <div>
-      <h2>Recorder</h2>
+      {/* <h2>Recorder</h2> */}
       <Word />
       <div>{info}</div>
-      <button onClick={start}>start</button>
-      <button onClick={stop}>stop</button>
-      {/* <button onClick={save} disabled={!blob}>save</button> */}
-      <button disabled={!link}><a href={link}>download</a></button>
-      <button disabled={!link} onClick={upload}>upload</button>
+      {/* <div>{status}</div> */}
+      {status === 'stop'?
+        <button onClick={start}>start</button>
+      : status === 'start'?
+        <button onClick={stop}>stop</button>
+      :
+        <button disabled={true} onClick={stop}>stop</button>
+      }
+      {/* <button disabled={!link}><a href={link}>download</a></button>
+      <button disabled={!link} onClick={upload}>upload</button> */}
     </div>
   )
 }

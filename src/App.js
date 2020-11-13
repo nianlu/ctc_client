@@ -12,17 +12,15 @@ function App() {
 
   return (
     <div className="App">
-      <body>
-        <Nav toStep={setStep} />
-        {step === 'intro'?
-          <Intro toStep={setStep} />
-          : step === 'confirm'?
-          <Confirm toStep={setStep} />
-          : step === 'recorder'?
-          <Recorder toStep={setStep} />
-          : <></>
-        }
-      </body>
+      <Nav toStep={setStep} />
+      {step === 'intro'?
+        <Intro toStep={setStep} />
+        : step === 'confirm'?
+        <Confirm toStep={setStep} />
+        : step === 'recorder'?
+        <Recorder toStep={setStep} />
+        : <></>
+      }
     </div>
   );
 }
