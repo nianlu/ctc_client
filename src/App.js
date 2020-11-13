@@ -7,9 +7,12 @@ import Recorder from './Recorder'
 import Intro from './Intro'
 import Confirm from './Confirm'
 
+const random = max => Math.floor(Math.random() * Math.floor(max));
+
 function App() {
-  const [user, setUser] = useState({group: 'non-native'})
+  const [user, setUser] = useState({uid: 10000+random(9999), group: 'non-native'})
   const [step, setStep] = useState('intro')
+  // console.log('app', user)
 
   return (
     <div className="App">
@@ -17,7 +20,7 @@ function App() {
       {step === 'intro'?
         <Intro toStep={setStep} />
         : step === 'confirm'?
-        <Confirm toStep={setStep} onChangeGroup={v => setUser({group: v})} />
+        <Confirm toStep={setStep} onChangeGroup={v => setUser({...user, group: v})} />
         : step === 'recorder'?
         <Recorder toStep={setStep} user={user} />
         : <></>

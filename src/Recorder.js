@@ -7,7 +7,10 @@ import Word from './Word';
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 // https://stackoverflow.com/questions/50431236/use-getusermedia-media-devices-in-reactjs-to-record-audio/50440682
 // https://air.ghost.io/recording-to-an-audio-file-using-html5-and-js/
-const Recorder = () => {
+const Recorder = props => {
+
+  const { user } = props
+  // console.log('recorder', user)
 
   const [recorder, setRecorder] = useState()
   const [chunk, setChunk] = useState()
@@ -15,25 +18,6 @@ const Recorder = () => {
   const [link, setLink] = useState()
   const [info, setInfo] = useState('ready')
   const [status, setStatus] = useState('stop')
-
-  // const handleSuccess = function(stream) {
-  //   console.log('init rec')
-  //   // const context = new AudioContext();
-  //   // const source = context.createMediaStreamSource(stream);
-  //   // const processor = context.createScriptProcessor(1024, 1, 1);
-
-  //   // source.connect(processor);
-  //   // processor.connect(context.destination);
-
-  //   // processor.onaudioprocess = function(e) {
-  //   //   // Do something with the data, e.g. convert it to WAV
-  //   //   // console.log(e.inputBuffer);
-  //   // };
-
-  // };
-
-  // navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-  //     .then(handleSuccess);
 
   // TODO refer to chrome-music-lab
   useEffect(() => {
@@ -57,7 +41,7 @@ const Recorder = () => {
           setInfo('uploading')
           api.upload(
             e.data,
-            {'User-Id': 1, 'File-Name': 'test', 'File-Type': e.data.type},
+            {'User-Id': user.uid, 'File-Name': 'test', 'File-Group': user.group, 'File-Type': e.data.type},
             data => {
               // console.log(data)
               setStatus('stop')
