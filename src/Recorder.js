@@ -18,20 +18,27 @@ const Recorder = props => {
   const [link, setLink] = useState()
   const [info, setInfo] = useState('ready')
   const [status, setStatus] = useState('stop')
+  const [test, setTest] = useState('init')
 
   // TODO refer to chrome-music-lab
   useEffect(() => {
+    setTest('1')
     navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
       const options = {
         audioBitsPerSecond : 48000,
+        mimeType: 'audio/webm'
       }
       const mediaRecorder = new MediaRecorder(stream, options)
-      mediaRecorder.ondataavailable = function(e) {
+      const ck = []
+      mediaRecorder.ondataavailable = e => {
         // chunks.push(e.data);
         // console.log(e.data)
+        ck.push(e.data)
         setChunk(e.data)
         if (mediaRecorder.state === 'inactive') {
-          // const testb = new Blob(e.data, { type: 'audio/webm' });
+
+          // const testb = new Blob(ck, { 'type': 'audio/wav;' });
+          // console.log('--chunk', e, ck, testb)
           console.log(e.data)
           setBlob(e.data)
           const audioURL = window.URL.createObjectURL(e.data);
@@ -55,12 +62,17 @@ const Recorder = props => {
           )
         } else console.log('not finished')
       }
+      mediaRecorder.onStop = e => {
+        console.log('onstop')
+      }
+      setTest('33')
       setRecorder(mediaRecorder)
-      // setChunk([])
+      setTest('3')
     })
   }, [])
 
   const onStart = () => {
+    setTest('4')
     setChunk()
     setLink()
     recorder && recorder.state === 'inactive' && recorder.start()
@@ -76,6 +88,7 @@ const Recorder = props => {
   // }
 
   const onStop = () => {
+    setTest('5')
     recorder && recorder.state === 'recording' && recorder.stop()
     console.log(recorder.state)
   }
@@ -121,11 +134,13 @@ const Recorder = props => {
   return (
     <div>
       <Word />
+      <div style={{marginBottom: '1rem'}}>{test}</div>
       <div style={{marginBottom: '1rem'}}>{info}</div>
       {isMobile?
         <button className='ctc-mobile-record'
           onTouchStart={status === 'stop'? onStart : _ => {}}
           onTouchEnd={status === 'start'? onStop : _ => {}}
+          style={{userSelect: 'none', WebkitUserSelect: 'none'}}
         >
           {status === 'stop'?
             'start'

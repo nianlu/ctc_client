@@ -1,8 +1,8 @@
 import axios from "axios";
 
-axios.defaults.baseURL = 'http://localhost:5000/api/'
+// axios.defaults.baseURL = 'http://localhost:5000/api/'
 // axios.defaults.baseURL = 'https://ctc-web-291704.ue.r.appspot.com/'
-// axios.defaults.baseURL = '/api/'
+axios.defaults.baseURL = '/api/'
 
 
 // axios.interceptors.request.use(
