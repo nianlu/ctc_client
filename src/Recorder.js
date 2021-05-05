@@ -24,6 +24,27 @@ const Recorder = props => {
   useEffect(() => {
     setTest('1')
     navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
+
+      const audioContext = new(window.AudioContext || window.webkitAudioContext)();
+      const streamSource = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048 //fftSize * 2;
+      analyser.smoothingTimeConstant = 0.0;
+      streamSource.connect(analyser);
+
+      var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
+      void analyser.getFloatFrequencyData(dataArray);
+      
+      console.log('xxx', dataArray)
+
+      // // Reset the queue.
+      // freqDataQueue = [];
+      // freqData = new Float32Array(fftSize);
+      // if (includeRawAudio) {
+      //   timeDataQueue = [];
+      //   timeData = new Float32Array(fftSize);
+      // }
+
       const options = {
         audioBitsPerSecond : 48000,
         mimeType: 'audio/webm'
