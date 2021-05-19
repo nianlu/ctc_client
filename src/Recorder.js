@@ -20,22 +20,44 @@ const Recorder = props => {
   const [status, setStatus] = useState('stop')
   const [test, setTest] = useState('init')
 
+  const audioContext = new(window.AudioContext || window.webkitAudioContext)();
+  const analyser = audioContext.createAnalyser();
+
+  async function xxx() {
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+
+    const streamSource = audioContext.createMediaStreamSource(stream);
+    analyser.fftSize = 2048 //fftSize * 2;
+    analyser.smoothingTimeConstant = 0.0;
+    streamSource.connect(analyser);
+    // streamSource.start(0)
+
+    var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
+    void analyser.getFloatFrequencyData(dataArray);
+    console.log('xxx1', dataArray)
+    void analyser.getFloatFrequencyData(dataArray);
+    console.log('xxx2', dataArray)
+    void analyser.getFloatFrequencyData(dataArray);
+    console.log('xxx3', dataArray)
+    void analyser.getFloatFrequencyData(dataArray);
+    console.log('xxx4', dataArray)
+    void analyser.getFloatFrequencyData(dataArray);
+    console.log('xxx5', dataArray)
+  }
+
+  const handc = () => {
+    var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
+    void analyser.getFloatFrequencyData(dataArray);
+    console.log('xxx1', dataArray)
+  }
+
   // TODO refer to chrome-music-lab
   useEffect(() => {
     setTest('1')
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
-
-      const audioContext = new(window.AudioContext || window.webkitAudioContext)();
-      const streamSource = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048 //fftSize * 2;
-      analyser.smoothingTimeConstant = 0.0;
-      streamSource.connect(analyser);
-
-      var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
-      void analyser.getFloatFrequencyData(dataArray);
-      
-      console.log('xxx', dataArray)
+    console.log('ue')
+    xxx()
+    console.log('ue-end')
 
       // // Reset the queue.
       // freqDataQueue = [];
@@ -45,51 +67,6 @@ const Recorder = props => {
       //   timeData = new Float32Array(fftSize);
       // }
 
-      const options = {
-        audioBitsPerSecond : 48000,
-        mimeType: 'audio/webm'
-      }
-      const mediaRecorder = new MediaRecorder(stream, options)
-      const ck = []
-      mediaRecorder.ondataavailable = e => {
-        // chunks.push(e.data);
-        // console.log(e.data)
-        ck.push(e.data)
-        setChunk(e.data)
-        if (mediaRecorder.state === 'inactive') {
-
-          // const testb = new Blob(ck, { 'type': 'audio/wav;' });
-          // console.log('--chunk', e, ck, testb)
-          console.log(e.data)
-          setBlob(e.data)
-          const audioURL = window.URL.createObjectURL(e.data);
-          // setLink(audioURL)
-          // console.log(audioURL)
-          setStatus('upload')
-          setInfo('uploading')
-          api.upload(
-            e.data,
-            {'User-Id': user.uid, 'File-Name': 'test', 'File-Group': user.group, 'File-Type': e.data.type},
-            data => {
-              // console.log(data)
-              setStatus('stop')
-              setInfo('uploaded')
-            },
-            error => {
-              setStatus('stop')
-              setInfo('upload failed')
-              console.log(error)
-            }
-          )
-        } else console.log('not finished')
-      }
-      mediaRecorder.onStop = e => {
-        console.log('onstop')
-      }
-      setTest('33')
-      setRecorder(mediaRecorder)
-      setTest('3')
-    })
   }, [])
 
   const onStart = () => {
@@ -157,6 +134,7 @@ const Recorder = props => {
       <Word />
       <div style={{marginBottom: '1rem'}}>{test}</div>
       <div style={{marginBottom: '1rem'}}>{info}</div>
+      <button className='ctc-button' onClick={handc}>start</button>
       {isMobile?
         <button className='ctc-mobile-record'
           onTouchStart={status === 'stop'? onStart : _ => {}}
