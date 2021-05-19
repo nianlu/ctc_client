@@ -20,7 +20,7 @@ const Recorder = props => {
   const [status, setStatus] = useState('stop')
   const [test, setTest] = useState('init')
 
-  const audioContext = new(window.AudioContext || window.webkitAudioContext)();
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const analyser = audioContext.createAnalyser();
 
   async function xxx() {
@@ -32,24 +32,29 @@ const Recorder = props => {
     analyser.smoothingTimeConstant = 0.0;
     streamSource.connect(analyser);
     // streamSource.start(0)
+    console.log('xxx', analyser, streamSource)
 
     var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
     void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx1', dataArray)
-    void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx2', dataArray)
-    void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx3', dataArray)
-    void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx4', dataArray)
-    void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx5', dataArray)
+    console.log('xxx', dataArray)
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => {
+        // void analyser.getFloatFrequencyData(dataArray);
+        void analyser.getFloatTimeDomainData(dataArray);
+        console.log('xxx'+i, dataArray)
+      }, 1000);
+    }
   }
 
   const handc = () => {
+    console.log('analyser', analyser)
     var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
-    void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx1', dataArray)
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => {
+        void analyser.getFloatFrequencyData(dataArray);
+        console.log('handc'+i, dataArray)
+      }, 10000);
+    }
   }
 
   // TODO refer to chrome-music-lab
