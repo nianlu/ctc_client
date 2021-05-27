@@ -4,6 +4,15 @@ import { testget, testUpload } from './api';
 import * as api from './api';
 import Word from './Word';
 
+import { MediaRecorder, register } from 'extendable-media-recorder';
+import { connect } from 'extendable-media-recorder-wav-encoder';
+
+async function init() {
+  await register(await connect());
+}
+
+init()
+
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 // https://stackoverflow.com/questions/50431236/use-getusermedia-media-devices-in-reactjs-to-record-audio/50440682
 // https://air.ghost.io/recording-to-an-audio-file-using-html5-and-js/
@@ -24,6 +33,7 @@ const Recorder = props => {
     navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
       const options = {
         audioBitsPerSecond : 48000,
+        mimeType: 'audio/wav'
       }
       const mediaRecorder = new MediaRecorder(stream, options)
       mediaRecorder.ondataavailable = function(e) {
@@ -35,24 +45,25 @@ const Recorder = props => {
           console.log(e.data)
           setBlob(e.data)
           const audioURL = window.URL.createObjectURL(e.data);
-          // setLink(audioURL)
-          // console.log(audioURL)
-          setStatus('upload')
-          setInfo('uploading')
-          api.upload(
-            e.data,
-            {'User-Id': user.uid, 'File-Name': 'test', 'File-Group': user.group, 'File-Type': e.data.type},
-            data => {
-              // console.log(data)
-              setStatus('stop')
-              setInfo('uploaded')
-            },
-            error => {
-              setStatus('stop')
-              setInfo('upload failed')
-              console.log(error)
-            }
-          )
+          setLink(audioURL)
+          console.log(audioURL)
+          // setStatus('upload')
+          // setInfo('uploading')
+          // api.upload(
+          //   e.data,
+          //   {'User-Id': user.uid, 'File-Name': 'test', 'File-Group': user.group, 'File-Type': e.data.type},
+          //   data => {
+          //     // console.log(data)
+          //     setStatus('stop')
+          //     setInfo('uploaded')
+          //   },
+          //   error => {
+          //     setStatus('stop')
+          //     setInfo('upload failed')
+          //     console.log(error)
+          //   }
+          // )
+          setStatus('stop')
         } else console.log('not finished')
       }
       setRecorder(mediaRecorder)
@@ -140,8 +151,8 @@ const Recorder = props => {
       :
         <button className='ctc-button' disabled={true} onClick={onStop}>stop</button>
       }
-      {/* <button disabled={!link}><a href={link}>download</a></button>
-      <button disabled={!link} onClick={upload}>upload</button> */}
+      <button disabled={!link}><a href={link}>download</a></button>
+      {/* <button disabled={!link} onClick={upload}>upload</button> */}
     </div>
   )
 }
