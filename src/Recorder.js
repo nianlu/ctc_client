@@ -4,12 +4,21 @@ import { testget, testUpload } from './api';
 import * as api from './api';
 import Word from './Word';
 
+import { MediaRecorder, register } from 'extendable-media-recorder';
+import { connect } from 'extendable-media-recorder-wav-encoder';
+
+async function init() {
+  await register(await connect());
+}
+
+init()
+
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 // https://stackoverflow.com/questions/50431236/use-getusermedia-media-devices-in-reactjs-to-record-audio/50440682
 // https://air.ghost.io/recording-to-an-audio-file-using-html5-and-js/
 const Recorder = props => {
 
-  const { user } = props
+  const { user, model } = props
   // console.log('recorder', user)
 
   const [recorder, setRecorder] = useState()
@@ -18,64 +27,51 @@ const Recorder = props => {
   const [link, setLink] = useState()
   const [info, setInfo] = useState('ready')
   const [status, setStatus] = useState('stop')
-  const [test, setTest] = useState('init')
-
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const analyser = audioContext.createAnalyser();
-
-  async function xxx() {
-
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-
-    const streamSource = audioContext.createMediaStreamSource(stream);
-    analyser.fftSize = 2048 //fftSize * 2;
-    analyser.smoothingTimeConstant = 0.0;
-    streamSource.connect(analyser);
-    // streamSource.start(0)
-    console.log('xxx', analyser, streamSource)
-
-    var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
-    void analyser.getFloatFrequencyData(dataArray);
-    console.log('xxx', dataArray)
-    for (let i = 0; i < 10; i++) {
-      setTimeout(() => {
-        // void analyser.getFloatFrequencyData(dataArray);
-        void analyser.getFloatTimeDomainData(dataArray);
-        console.log('xxx'+i, dataArray)
-      }, 1000);
-    }
-  }
-
-  const handc = () => {
-    console.log('analyser', analyser)
-    var dataArray = new Float32Array(analyser.frequencyBinCount); // Float32Array should be the same length as the frequencyBinCount
-    for (let i = 0; i < 10; i++) {
-      setTimeout(() => {
-        void analyser.getFloatFrequencyData(dataArray);
-        console.log('handc'+i, dataArray)
-      }, 10000);
-    }
-  }
 
   // TODO refer to chrome-music-lab
   useEffect(() => {
-    setTest('1')
-    console.log('ue')
-    xxx()
-    console.log('ue-end')
-
-      // // Reset the queue.
-      // freqDataQueue = [];
-      // freqData = new Float32Array(fftSize);
-      // if (includeRawAudio) {
-      //   timeDataQueue = [];
-      //   timeData = new Float32Array(fftSize);
-      // }
-
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
+      const options = {
+        audioBitsPerSecond : 48000,
+        mimeType: 'audio/wav'
+      }
+      const mediaRecorder = new MediaRecorder(stream, options)
+      mediaRecorder.ondataavailable = function(e) {
+        // chunks.push(e.data);
+        // console.log(e.data)
+        setChunk(e.data)
+        if (mediaRecorder.state === 'inactive') {
+          // const testb = new Blob(e.data, { type: 'audio/webm' });
+          console.log(e.data)
+          setBlob(e.data)
+          const audioURL = window.URL.createObjectURL(e.data);
+          setLink(audioURL)
+          console.log(audioURL)
+          // setStatus('upload')
+          // setInfo('uploading')
+          // api.upload(
+          //   e.data,
+          //   {'User-Id': user.uid, 'File-Name': 'test', 'File-Group': user.group, 'File-Type': e.data.type},
+          //   data => {
+          //     // console.log(data)
+          //     setStatus('stop')
+          //     setInfo('uploaded')
+          //   },
+          //   error => {
+          //     setStatus('stop')
+          //     setInfo('upload failed')
+          //     console.log(error)
+          //   }
+          // )
+          setStatus('stop')
+        } else console.log('not finished')
+      }
+      setRecorder(mediaRecorder)
+      // setChunk([])
+    })
   }, [])
 
   const onStart = () => {
-    setTest('4')
     setChunk()
     setLink()
     recorder && recorder.state === 'inactive' && recorder.start()
@@ -91,7 +87,6 @@ const Recorder = props => {
   // }
 
   const onStop = () => {
-    setTest('5')
     recorder && recorder.state === 'recording' && recorder.stop()
     console.log(recorder.state)
   }
@@ -134,17 +129,23 @@ const Recorder = props => {
     fontSize: '1.2rem'
   }
 
+  const pred = input => {
+    // input = 'xxx'
+    console.log('predicting', input)
+    const predictOut = model.predict(input);
+    const score = predictOut.dataSync()[0];
+    predictOut.dispose();
+    // setScore(score)
+  }
+
   return (
     <div>
       <Word />
-      <div style={{marginBottom: '1rem'}}>{test}</div>
       <div style={{marginBottom: '1rem'}}>{info}</div>
-      <button className='ctc-button' onClick={handc}>start</button>
       {isMobile?
         <button className='ctc-mobile-record'
           onTouchStart={status === 'stop'? onStart : _ => {}}
           onTouchEnd={status === 'start'? onStop : _ => {}}
-          style={{userSelect: 'none', WebkitUserSelect: 'none'}}
         >
           {status === 'stop'?
             'start'
@@ -159,8 +160,9 @@ const Recorder = props => {
       :
         <button className='ctc-button' disabled={true} onClick={onStop}>stop</button>
       }
-      {/* <button disabled={!link}><a href={link}>download</a></button>
-      <button disabled={!link} onClick={upload}>upload</button> */}
+      <button onClick={_ => pred(blob)}>test predict</button>
+      <button disabled={!link}><a href={link}>download</a></button>
+      {/* <button disabled={!link} onClick={upload}>upload</button> */}
     </div>
   )
 }

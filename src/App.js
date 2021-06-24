@@ -179,7 +179,7 @@ function App() {
         : step === 'confirm'?
         <Confirm toStep={setStep} onChangeGroup={v => setUser({...user, group: v})} />
         : step === 'recorder'?
-        <Recorder toStep={setStep} user={user} />
+        <Recorder toStep={setStep} user={user} model={model} />
         : <></>
       }
       <button onClick={testttttt}>xxxx</button>
