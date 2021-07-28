@@ -4,6 +4,8 @@ import { testget, testUpload } from './api';
 import * as api from './api';
 import Word from './Word';
 
+import * as tf from '@tensorflow/tfjs'
+
 import { MediaRecorder, register } from 'extendable-media-recorder';
 import { connect } from 'extendable-media-recorder-wav-encoder';
 
@@ -22,7 +24,6 @@ const Recorder = props => {
   // console.log('recorder', user)
 
   const [recorder, setRecorder] = useState()
-  const [chunk, setChunk] = useState()
   const [blob, setBlob] = useState()
   const [link, setLink] = useState()
   const [info, setInfo] = useState('ready')
@@ -37,42 +38,21 @@ const Recorder = props => {
       }
       const mediaRecorder = new MediaRecorder(stream, options)
       mediaRecorder.ondataavailable = function(e) {
-        // chunks.push(e.data);
-        // console.log(e.data)
-        setChunk(e.data)
         if (mediaRecorder.state === 'inactive') {
-          // const testb = new Blob(e.data, { type: 'audio/webm' });
           console.log(e.data)
           setBlob(e.data)
           const audioURL = window.URL.createObjectURL(e.data);
           setLink(audioURL)
           console.log(audioURL)
-          // setStatus('upload')
-          // setInfo('uploading')
-          // api.upload(
-          //   e.data,
-          //   {'User-Id': user.uid, 'File-Name': 'test', 'File-Group': user.group, 'File-Type': e.data.type},
-          //   data => {
-          //     // console.log(data)
-          //     setStatus('stop')
-          //     setInfo('uploaded')
-          //   },
-          //   error => {
-          //     setStatus('stop')
-          //     setInfo('upload failed')
-          //     console.log(error)
-          //   }
-          // )
           setStatus('stop')
+          setInfo('ready')
         } else console.log('not finished')
       }
       setRecorder(mediaRecorder)
-      // setChunk([])
     })
   }, [])
 
   const onStart = () => {
-    setChunk()
     setLink()
     recorder && recorder.state === 'inactive' && recorder.start()
     console.log(recorder.state)
@@ -89,6 +69,17 @@ const Recorder = props => {
   const onStop = () => {
     recorder && recorder.state === 'recording' && recorder.stop()
     console.log(recorder.state)
+  }
+
+  const onPrepare = async _ => {
+    console.log('preparing', blob)
+    const bbb = await blob.arrayBuffer()
+    console.log('preparingbbb', bbb)
+    const aaa = new Float32Array(bbb)
+    console.log('aaa', aaa)
+    const ttt = tf.tensor(aaa)
+    console.log('tttt', ttt)
+
   }
 
   const onSave = () => {
@@ -160,7 +151,8 @@ const Recorder = props => {
       :
         <button className='ctc-button' disabled={true} onClick={onStop}>stop</button>
       }
-      <button onClick={_ => pred(blob)}>test predict</button>
+      <button disabled={!link} onClick={onPrepare}>prepare</button>
+      {/* <button onClick={_ => pred(blob)}>test predict</button> */}
       <button disabled={!link}><a href={link}>download</a></button>
       {/* <button disabled={!link} onClick={upload}>upload</button> */}
     </div>
