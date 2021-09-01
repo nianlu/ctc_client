@@ -21,7 +21,7 @@ init()
 const Recorder = props => {
 
   const { user, model } = props
-  // console.log('recorder', user)
+  console.log('recorder', user)
 
   const [recorder, setRecorder] = useState()
   const [blob, setBlob] = useState()
@@ -29,28 +29,72 @@ const Recorder = props => {
   const [info, setInfo] = useState('ready')
   const [status, setStatus] = useState('stop')
 
-  // TODO refer to chrome-music-lab
-  useEffect(() => {
+  const [reqid, setReqid] = useState()
+  const [ana, setAna] = useState()
+
+  // // TODO refer to chrome-music-lab
+  // useEffect(() => {
+  //   console.log('useeffect')
+  //   var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  //   var analyser = audioCtx.createAnalyser();
+
+  //   analyser.fftSize = 2048;
+  //   var bufferLength = analyser.frequencyBinCount;
+  //   // var dataArray = new Uint8Array(bufferLength);
+  //   var dataArray = new Float32Array(bufferLength)
+  //   // analyser.getByteTimeDomainData(dataArray);
+
+  //   var source
+
+  //   navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
+  //     console.log('stream')
+  //     source = audioCtx.createMediaStreamSource(stream);
+  //     source.connect(analyser);
+  //     analyser.connect(audioCtx.destination)
+
+  //     console.log('before looog', source)
+  //     const looog = () => {
+  //       console.log('looog')
+  //       const rid = window.requestAnimationFrame(looog)
+  //       analyser.getFloatTimeDomainData(dataArray);
+  //       console.log(rid, dataArray);
+  //       // rid !== reqid && setReqid(rid)
+  //     }
+  //     looog()
+  //   })
+  // }, [user, model])
+
+  const onA = () => {
+    console.log('useeffect')
+    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var analyser = audioCtx.createAnalyser();
+
+    analyser.fftSize = 2048;
+    var bufferLength = analyser.frequencyBinCount;
+    var dataArray = new Uint8Array(bufferLength);
+    // var dataArray = new Float32Array(bufferLength)
+    // analyser.getByteTimeDomainData(dataArray);
+
+    var source
+
     navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
-      const options = {
-        audioBitsPerSecond : 48000,
-        mimeType: 'audio/wav'
+      console.log('stream')
+      source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination)
+
+      console.log('before looog', source)
+      const looog = () => {
+        console.log('looog')
+        const rid = window.requestAnimationFrame(looog)
+        // analyser.getFloatFrequencyData(dataArray);
+        analyser.getByteFrequencyData(dataArray);
+        console.log(rid, dataArray);
+        // rid !== reqid && setReqid(rid)
       }
-      const mediaRecorder = new MediaRecorder(stream, options)
-      mediaRecorder.ondataavailable = function(e) {
-        if (mediaRecorder.state === 'inactive') {
-          console.log(e.data)
-          setBlob(e.data)
-          const audioURL = window.URL.createObjectURL(e.data);
-          setLink(audioURL)
-          console.log(audioURL)
-          setStatus('stop')
-          setInfo('ready')
-        } else console.log('not finished')
-      }
-      setRecorder(mediaRecorder)
+      looog()
     })
-  }, [])
+  }
 
   const onStart = () => {
     setLink()
@@ -80,6 +124,13 @@ const Recorder = props => {
     const ttt = tf.tensor(aaa)
     console.log('tttt', ttt)
 
+  }
+  
+  const onCancel = () => {
+    window.cancelAnimationFrame(reqid);
+  }
+  const onRestart = () => {
+    window.requestAnimationFrame(reqid);
   }
 
   const onSave = () => {
@@ -133,6 +184,9 @@ const Recorder = props => {
     <div>
       <Word />
       <div style={{marginBottom: '1rem'}}>{info}</div>
+      <button className='ctc-button' onClick={onA}>A</button>
+      <button className='ctc-button' onClick={onCancel}>cancel</button>
+      <button className='ctc-button' onClick={onRestart}>restart</button>
       {isMobile?
         <button className='ctc-mobile-record'
           onTouchStart={status === 'stop'? onStart : _ => {}}
