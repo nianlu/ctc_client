@@ -32,45 +32,14 @@ const Recorder = props => {
   const [reqid, setReqid] = useState()
   const [ana, setAna] = useState()
 
-  // // TODO refer to chrome-music-lab
-  // useEffect(() => {
-  //   console.log('useeffect')
-  //   var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  //   var analyser = audioCtx.createAnalyser();
-
-  //   analyser.fftSize = 2048;
-  //   var bufferLength = analyser.frequencyBinCount;
-  //   // var dataArray = new Uint8Array(bufferLength);
-  //   var dataArray = new Float32Array(bufferLength)
-  //   // analyser.getByteTimeDomainData(dataArray);
-
-  //   var source
-
-  //   navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
-  //     console.log('stream')
-  //     source = audioCtx.createMediaStreamSource(stream);
-  //     source.connect(analyser);
-  //     analyser.connect(audioCtx.destination)
-
-  //     console.log('before looog', source)
-  //     const looog = () => {
-  //       console.log('looog')
-  //       const rid = window.requestAnimationFrame(looog)
-  //       analyser.getFloatTimeDomainData(dataArray);
-  //       console.log(rid, dataArray);
-  //       // rid !== reqid && setReqid(rid)
-  //     }
-  //     looog()
-  //   })
-  // }, [user, model])
-
   const onA = () => {
-    console.log('useeffect')
+    // console.log('useeffect')
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     var analyser = audioCtx.createAnalyser();
 
     analyser.fftSize = 2048;
     var bufferLength = analyser.frequencyBinCount;
+    console.log('ona', bufferLength)
     var dataArray = new Uint8Array(bufferLength);
     // var dataArray = new Float32Array(bufferLength)
     // analyser.getByteTimeDomainData(dataArray);
@@ -89,11 +58,14 @@ const Recorder = props => {
         const rid = window.requestAnimationFrame(looog)
         // analyser.getFloatFrequencyData(dataArray);
         analyser.getByteFrequencyData(dataArray);
-        console.log(rid, dataArray);
+        // console.log(rid, dataArray);
         // rid !== reqid && setReqid(rid)
       }
       looog()
     })
+
+    console.log('audioctx', audioCtx)
+    console.log('analyser', analyser)
   }
 
   const onStart = () => {
