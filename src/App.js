@@ -158,14 +158,14 @@ function App() {
   },[])
 
   const [score, setScore] = useState();
-  const pred = input => {
-    input = 'xxx'
-    console.log('predicting', input)
-    const predictOut = model.predict(input);
-    const score = predictOut.dataSync()[0];
-    predictOut.dispose();
-    setScore(score)
-  }
+  // const pred = input => {
+  //   input = 'xxx'
+  //   console.log('predicting', input)
+  //   const predictOut = model.predict(input);
+  //   const score = predictOut.dataSync()[0];
+  //   predictOut.dispose();
+  //   setScore(score)
+  // }
 
   return (
     <div className="App">
@@ -173,7 +173,7 @@ function App() {
       <AuthProvider>
         <TestAuth />
       </AuthProvider>
-      <button onClick={pred}>test predict</button>
+      {/* <button onClick={pred}>test predict</button> */}
       {step === 'intro'?
         <Intro toStep={setStep} />
         : step === 'confirm'?
