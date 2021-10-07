@@ -8,11 +8,9 @@ import * as tf from '@tensorflow/tfjs'
 
 import { MediaRecorder, register } from 'extendable-media-recorder';
 import { connect } from 'extendable-media-recorder-wav-encoder';
-
 async function init() {
   await register(await connect());
 }
-
 init()
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
@@ -31,6 +29,58 @@ const Recorder = props => {
 
   const [reqid, setReqid] = useState()
   const [ana, setAna] = useState()
+
+
+  const [ueAnalyser, setUeAnalyser] = useState()
+  const [ueIId, setUeIId] = useState()
+  // const [ueRun, setUeRun] = useState(false)
+  const [ueData, setUeData] = useState()
+
+  useEffect(() => {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
+      console.log('stream')
+
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser()
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination)
+
+      setUeAnalyser(analyser)
+      console.log('setanalyser')
+    })
+  }, [])
+
+  const onUeStart = () => {
+
+    var bufferLength = ueAnalyser.frequencyBinCount;
+    console.log('ona', bufferLength)
+    var dataArray = new Uint8Array(bufferLength);
+    let data = []
+
+    // every 0.1s
+    const iid = setInterval(() => {
+      ueAnalyser.getByteFrequencyData(dataArray)
+      console.log('setinterval', dataArray)
+      // const c = data.push(dataArray)
+      if (data.push(dataArray) > 100)
+        data.shift()
+      // setUeData(ueData.concat([dataArray]))
+    }, 100);
+
+    setUeData(data)
+    setUeIId(iid)
+    console.log('iid', iid)
+    setStatus('start')
+  }
+
+  const onUeStop = () => {
+    clearInterval(ueIId)
+    console.log('ddd', ueData)
+    setStatus('stop')
+  }
+
+  const [looogA, setLooogA] = useState()
 
   const onA = () => {
     // console.log('useeffect')
@@ -52,14 +102,21 @@ const Recorder = props => {
       source.connect(analyser);
       analyser.connect(audioCtx.destination)
 
+      const ttt = stream.getTracks()
+      console.log('ttt', ttt)
+
       console.log('before looog', source)
+      setLooogA([])
       const looog = () => {
         console.log('looog')
-        const rid = window.requestAnimationFrame(looog)
+        // const rid = window.requestAnimationFrame(looog)
         // analyser.getFloatFrequencyData(dataArray);
         analyser.getByteFrequencyData(dataArray);
         // console.log(rid, dataArray);
         // rid !== reqid && setReqid(rid)
+
+        // below will break browser
+        // setLooogA([...looogA, dataArray])
       }
       looog()
     })
@@ -156,13 +213,14 @@ const Recorder = props => {
     <div>
       <Word />
       <div style={{marginBottom: '1rem'}}>{info}</div>
-      <button className='ctc-button' onClick={onA}>A</button>
-      <button className='ctc-button' onClick={onCancel}>cancel</button>
-      <button className='ctc-button' onClick={onRestart}>restart</button>
+      {/* <button className='ctc-button' onClick={onUeStart}>Start</button>
+      <button className='ctc-button' onClick={onUeStop}>Stop</button> */}
+      {/* <button className='ctc-button' onClick={onCancel}>cancel</button>
+      <button className='ctc-button' onClick={onRestart}>restart</button> */}
       {isMobile?
         <button className='ctc-mobile-record'
-          onTouchStart={status === 'stop'? onStart : _ => {}}
-          onTouchEnd={status === 'start'? onStop : _ => {}}
+          onTouchStart={status === 'stop'? onUeStart : _ => {}}
+          onTouchEnd={status === 'start'? onUeStop : _ => {}}
         >
           {status === 'stop'?
             'start'
@@ -171,15 +229,18 @@ const Recorder = props => {
           }
         </button>
       : status === 'stop'?
-        <button className='ctc-button' onClick={onStart}>start</button>
+        <button className='ctc-button' onClick={onUeStart}>start</button>
       : status === 'start'?
-        <button className='ctc-button' onClick={onStop}>stop</button>
+        <button className='ctc-button' onClick={onUeStop}>stop</button>
       :
-        <button className='ctc-button' disabled={true} onClick={onStop}>stop</button>
+        <button className='ctc-button' disabled={true} onClick={onUeStop}>stop</button>
       }
-      <button disabled={!link} onClick={onPrepare}>prepare</button>
+      {status === 'stop' && ueData &&
+        <span>{ueData.length}</span>
+      }
+      {/* <button disabled={!link} onClick={onPrepare}>prepare</button> */}
       {/* <button onClick={_ => pred(blob)}>test predict</button> */}
-      <button disabled={!link}><a href={link}>download</a></button>
+      {/* <button disabled={!link}><a href={link}>download</a></button> */}
       {/* <button disabled={!link} onClick={upload}>upload</button> */}
     </div>
   )
