@@ -42,18 +42,21 @@ const Recorder = props => {
 
     var bufferLength = ueAnalyser.frequencyBinCount;
     console.log('ona', bufferLength)
-    var dataArray = new Uint8Array(bufferLength);
+    // var dataArray = new Uint8Array(bufferLength);
     let data = []
 
     // every 0.1s
     const iid = setInterval(() => {
+      var dataArray = new Uint8Array(bufferLength);
       ueAnalyser.getByteFrequencyData(dataArray)
-      console.log('setinterval', dataArray)
+      // console.log('setinterval', dataArray)
       // const c = data.push(dataArray)
-      if (data.push(dataArray) > 100)
+      // if (c > 100)
+      //   data.shift()
+      if (data.push(dataArray) > 500)
         data.shift()
       // setUeData(ueData.concat([dataArray]))
-    }, 100);
+    }, 50);
 
     setUeData(data)
     setUeIId(iid)
@@ -67,6 +70,63 @@ const Recorder = props => {
     console.log('ddd', ueData)
     setStatus('stop')
     setInfo('finished')
+
+    console.log('ddd', JSON.stringify(ueData.map(d => Array.from(d))))
+    // const audioURL = window.URL.createObjectURL(blob);
+    // const audioURL = window.URL.createObjectURL(ueData);
+    const audioURL = window.URL.createObjectURL(new Blob([JSON.stringify(ueData.map(d => Array.from(d)))]), {type : 'application/json'});
+    // append videoURL to list of saved videos for rendering
+    // const audios = this.state.audios.concat([audioURL]);
+    console.log(audioURL)
+
+    var canvas = document.querySelector('.visualizer');
+    var canvasCtx = canvas.getContext("2d");
+    // canvas.setAttribute('width',intendedWidth);
+    // const WIDTH = canvas.width;
+    // const HEIGHT = canvas.height;
+    // const WIDTH = 640;
+    const wp = 5
+    const WIDTH = wp * ueData.length;
+    // const HEIGHT = 1024;
+    const wh = 2
+    const HEIGHT = 400;
+
+    // // create imageData object
+    // var idata = canvasCtx.createImageData(WIDTH, HEIGHT);
+    // // set our buffer as source
+    // idata.data.set(ueData);
+    // // update canvas with new data
+    // canvasCtx.putImageData(idata, 0, 0);
+
+    console.log('ueData', ueData.length)
+    canvasCtx.clearRect(0, 0, 800, HEIGHT);
+    canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+    ueData.forEach((d, i) => {
+      // canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+      // canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      const bufferLength = 1024
+      // var dy = (HEIGHT / bufferLength)
+      var dx = i * wp
+      d.forEach((c, j) => {
+        if (j > (HEIGHT/wh)) return
+        // var dy = HEIGHT - j
+        var dy = j*wh
+        canvasCtx.fillStyle = 'rgb(' + (c*2) + ',10,10)';
+        canvasCtx.fillRect(dx, dy, wp, wh);
+      })
+
+      // var barWidth = (WIDTH / bufferLength) * 2.5;
+      // var barHeight;
+      // var x = 0;
+      // for(var i = 0; i < bufferLength; i++) {
+      //   barHeight = (d[i] )*2;
+      //   canvasCtx.fillStyle = 'rgb(' + Math.floor(barHeight+100) + ',50,50)';
+      //   canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+      //   x += barWidth + 1;
+      // }
+    })
+// https://github.com/calebj0seph/spectro
   }
 
   const onPrepare = async _ => {
@@ -146,7 +206,19 @@ const Recorder = props => {
         <span>{ueData.length}</span>
       }
       <br />
+      <canvas className="visualizer" width="640" height="640"></canvas> 
       {/* <button disabled={!link} onClick={onPrepare}>prepare</button> */}
+      <div>
+        {ueData && ueData.map(d =>
+          <div style={{margin: 0}}>
+            {Array.from(d).map(c =>
+              <span style={{backgroundColor: '#dc143c'+(c > 99? 99 : c), fontSize: '0.1rem', width: '1px', display: 'inline-block'}}>{c}</span>
+              // <span style={{backgroundColor: '#dc143c'+(c > 99? 99 : c)}}><span style={{fontSize: '0.1rem'}}>{c}</span></span>
+            )}
+          </div>
+
+        )}
+      </div>
       <button onClick={onPrepare}>prepare</button>
       <button onClick={_ => pred(ueData)}>test predict</button>
       {/* <button disabled={!link}><a href={link}>download</a></button> */}
