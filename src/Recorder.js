@@ -6,6 +6,8 @@ import Word from './Word';
 
 import * as tf from '@tensorflow/tfjs'
 
+import * as math from 'mathjs'
+
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 // https://stackoverflow.com/questions/50431236/use-getusermedia-media-devices-in-reactjs-to-record-audio/50440682
 // https://air.ghost.io/recording-to-an-audio-file-using-html5-and-js/
@@ -45,7 +47,7 @@ const Recorder = props => {
     // var dataArray = new Uint8Array(bufferLength);
     let data = []
 
-    // every 0.1s
+    // every 0.05s
     const iid = setInterval(() => {
       var dataArray = new Uint8Array(bufferLength);
       ueAnalyser.getByteFrequencyData(dataArray)
@@ -53,10 +55,13 @@ const Recorder = props => {
       // const c = data.push(dataArray)
       // if (c > 100)
       //   data.shift()
-      if (data.push(dataArray) > 500)
-        data.shift()
+      const max = Math.max.apply(null, dataArray)
+      console.log('recording max', max)
+      if (data.length > 1 || max > 70)
+        if (data.push(dataArray) > 500)
+          data.shift()
       // setUeData(ueData.concat([dataArray]))
-    }, 50);
+    }, 10);
 
     setUeData(data)
     setUeIId(iid)
@@ -85,7 +90,7 @@ const Recorder = props => {
     // const WIDTH = canvas.width;
     // const HEIGHT = canvas.height;
     // const WIDTH = 640;
-    const wp = 5
+    const wp = 2
     const WIDTH = wp * ueData.length;
     // const HEIGHT = 1024;
     const wh = 2
@@ -99,20 +104,28 @@ const Recorder = props => {
     // canvasCtx.putImageData(idata, 0, 0);
 
     console.log('ueData', ueData.length)
-    canvasCtx.clearRect(0, 0, 800, HEIGHT);
+    // canvasCtx.clearRect(0, 0, 800, HEIGHT);
+    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
     canvasCtx.fillStyle = 'rgb(0, 0, 0)';
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    const flatD = ueData.flatMap(d => Array.from(d))
+    console.log('flat', flatD)
+    const resultOfQuantile = math.quantileSeq(flatD, 0.95)
+    console.log('resultOfQuantile', resultOfQuantile)
+
+    console.log('start print')
     ueData.forEach((d, i) => {
       // canvasCtx.fillStyle = 'rgb(0, 0, 0)';
       // canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-      const bufferLength = 1024
+      // const bufferLength = 1024
       // var dy = (HEIGHT / bufferLength)
       var dx = i * wp
       d.forEach((c, j) => {
         if (j > (HEIGHT/wh)) return
         // var dy = HEIGHT - j
-        var dy = j*wh
-        canvasCtx.fillStyle = 'rgb(' + (c*2) + ',10,10)';
+        var dy = HEIGHT - j*wh
+        canvasCtx.fillStyle = 'rgb(' + (c > resultOfQuantile? (c-resultOfQuantile)*3+10 : 10) + ',10,10)'; // 255 //rgb(100, 10, 10)
         canvasCtx.fillRect(dx, dy, wp, wh);
       })
 
@@ -126,6 +139,7 @@ const Recorder = props => {
       //   x += barWidth + 1;
       // }
     })
+    console.log('end print')
 // https://github.com/calebj0seph/spectro
   }
 
@@ -208,7 +222,7 @@ const Recorder = props => {
       <br />
       <canvas className="visualizer" width="640" height="640"></canvas> 
       {/* <button disabled={!link} onClick={onPrepare}>prepare</button> */}
-      <div>
+      {/* <div>
         {ueData && ueData.map(d =>
           <div style={{margin: 0}}>
             {Array.from(d).map(c =>
@@ -218,7 +232,7 @@ const Recorder = props => {
           </div>
 
         )}
-      </div>
+      </div> */}
       <button onClick={onPrepare}>prepare</button>
       <button onClick={_ => pred(ueData)}>test predict</button>
       {/* <button disabled={!link}><a href={link}>download</a></button> */}

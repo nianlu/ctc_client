@@ -11,6 +11,7 @@
     "extendable-media-recorder": "^6.3.0",
     "extendable-media-recorder-wav-encoder": "^7.0.54",
     "firebase": "^8.2.4",
+    "mathjs": "^9.5.1",
     "react": "^16.13.1",
     "react-device-detect": "^1.14.0",
     "react-dom": "^16.13.1",
