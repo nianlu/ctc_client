@@ -30,12 +30,13 @@ Spectrogram.prototype._draw = function(array, canvasContext) {
       if (this._audioEnded) {
         canvasContext.fillStyle = this._getColor(0);
       }
-      canvasContext.fillRect(width - 1, height - i, 1, 1);
+      // canvasContext.fillRect(width - 1, height - i, 1, 1);
       // canvasContext.fillRect(width - 4, height - i, 4, 1);
+      canvasContext.fillRect(width - 4, height - (i*4), 4, 4);
     }
 
-    canvasContext.translate(-1, 0);
-    // canvasContext.translate(-4, 0);
+    // canvasContext.translate(-1, 0);
+    canvasContext.translate(-4, 0);
     // draw prev canvas before translation
     canvasContext.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
     canvasContext.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
@@ -62,15 +63,15 @@ Spectrogram.prototype._startMediaStreamDraw = function(analyser, canvasContext) 
   var audioData = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(audioData);
   this._draw(audioData, canvasContext);
-  var audioData = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(audioData);
-  this._draw(audioData, canvasContext);
-  var audioData = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(audioData);
-  this._draw(audioData, canvasContext);
-  var audioData = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(audioData);
-  this._draw(audioData, canvasContext);
+  // var audioData = new Uint8Array(analyser.frequencyBinCount);
+  // analyser.getByteFrequencyData(audioData);
+  // this._draw(audioData, canvasContext);
+  // var audioData = new Uint8Array(analyser.frequencyBinCount);
+  // analyser.getByteFrequencyData(audioData);
+  // this._draw(audioData, canvasContext);
+  // var audioData = new Uint8Array(analyser.frequencyBinCount);
+  // analyser.getByteFrequencyData(audioData);
+  // this._draw(audioData, canvasContext);
 };
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
@@ -119,7 +120,9 @@ const Recorder = props => {
       const analyser = audioCtx.createAnalyser()
 
       analyser.smoothingTimeConstant = 0
-      analyser.fftSize = 2048 * 2
+      analyser.fftSize = 2048 / 4
+      analyser.minDecibels = -65;
+      analyser.maxDecibels = -10;
 
       source.connect(analyser);
       // analyser.connect(audioCtx.destination)
