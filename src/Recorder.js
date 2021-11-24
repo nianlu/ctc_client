@@ -5,6 +5,7 @@ import * as api from './api';
 import Word from './Word';
 
 import * as tf from '@tensorflow/tfjs'
+// import * as tfnode from '@tensorflow/tfjs-node'
 
 import * as math from 'mathjs'
 
@@ -30,19 +31,19 @@ Spectrogram.prototype._draw = function(array, canvasContext) {
       if (this._audioEnded) {
         canvasContext.fillStyle = this._getColor(0);
       }
-      // canvasContext.fillRect(width - 1, height - i, 1, 1);
+      canvasContext.fillRect(width - 1, height - i, 1, 1);
       // canvasContext.fillRect(width - 4, height - i, 4, 1);
-      canvasContext.fillRect(width - 4, height - (i*4), 4, 4);
+      // canvasContext.fillRect(width - 4, height - (i*4), 4, 4);
     }
 
-    // canvasContext.translate(-1, 0);
-    canvasContext.translate(-4, 0);
+    canvasContext.translate(-1, 0);
+    // canvasContext.translate(-4, 0);
     // draw prev canvas before translation
     canvasContext.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
     canvasContext.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
     // reset transformation matrix
-    // canvasContext.setTransform(1, 0, 0, 1, 0, 0);
     canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+    // canvasContext.setTransform(1, 0, 0, 1, 0, 0);
 
     this._baseCanvasContext.drawImage(canvas, 0, 0, width, height);
 };
@@ -85,6 +86,7 @@ const Recorder = props => {
   const [recorder, setRecorder] = useState()
   const [info, setInfo] = useState('ready')
   const [status, setStatus] = useState('stop')
+  const [link, setLink] = useState()
 
   const [ueAnalyser, setUeAnalyser] = useState()
   const [ueIId, setUeIId] = useState()
@@ -97,10 +99,11 @@ const Recorder = props => {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const spectro = Spectrogram(document.getElementById('canvas'), {
       canvas: {
-        width: function() {
-          return window.innerWidth;
-        },
-        height: 500
+        width: 128,
+        // width: function() {
+        //   return window.innerWidth;
+        // },
+        height: 128
       },
       audio: {
         enable: true
@@ -119,10 +122,13 @@ const Recorder = props => {
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser()
 
-      analyser.smoothingTimeConstant = 0
-      analyser.fftSize = 2048 / 4
-      analyser.minDecibels = -65;
-      analyser.maxDecibels = -10;
+      analyser.smoothingTimeConstant = 0.3
+      analyser.fftSize = 2048 / 2
+      // analyser.fftSize = 2048 / 8
+      // analyser.minDecibels = -65;
+      analyser.minDecibels = -75;
+      // analyser.maxDecibels = -10;
+      analyser.maxDecibels = -30;
 
       source.connect(analyser);
       // analyser.connect(audioCtx.destination)
@@ -146,6 +152,29 @@ const Recorder = props => {
   const onStop = () => {
     spectrogram && spectrogram.pause()
     setStatus('pause')
+    // const dataURL = document.getElementById('canvas').toDataURL("image/png", 0.1)
+    const tftensor = tf.browser.fromPixels(document.getElementById('canvas'))
+    console.log('tftensor', tftensor)
+    const resized = tf.image.resizeBilinear(
+        tftensor, [48, 48], true
+      ).slice([0, 0, 0], [48, 48, 1]).reshape([1, 48, 48, 1])
+      // .print()
+    pred(resized)
+    // document.getElementById('canvas').toBlob(blob => {
+    //   blob.arrayBuffer().then(buffer => {
+    //     console.log('blob', blob)
+    //     const imageArray = new Uint8Array(buffer);
+    //     // const pngDecodedTensor = tfnode.node.decodePng(imageArray);
+    //     // pred(pngDecodedTensor)
+    //   })
+    // })
+    // const canvasCtx = document.getElementById('canvas').getContext('2d')
+    // var imageData = canvasCtx.getImageData(0, 0, 500, 500);
+    // console.log(imageData.data);
+
+    // setLink(dataURL)
+    // console.log('dt', dataURL)
+    // console.log('cctx', canvasCtx)
   }
 
   const mobileButtonStyle = {
@@ -158,10 +187,14 @@ const Recorder = props => {
   const pred = input => {
     // input = 'xxx'
     console.log('predicting', input)
-    const predictOut = model.predict(input);
-    const score = predictOut.dataSync()[0];
-    predictOut.dispose();
+    const predictOut = model.predict(input)
+    // const score = predictOut.dataSync()[0];
+    const label = predictOut.argMax(1)
+    const score = predictOut.dataSync();
     // setScore(score)
+    console.log('predictOut', predictOut)
+    console.log('score', score, label)
+    predictOut.dispose();
   }
 
   return (
@@ -198,7 +231,7 @@ const Recorder = props => {
       }
       <br />
       <canvas id='canvas'></canvas> 
-      <canvas className="visualizer" width="640" height="640"></canvas> 
+      <canvas className="visualizer" width="128" height="128"></canvas> 
       {/* <button disabled={!link} onClick={onPrepare}>prepare</button> */}
       {/* <div>
         {ueData && ueData.map(d =>
@@ -213,7 +246,7 @@ const Recorder = props => {
       </div> */}
       {/* <button onClick={onPrepare}>prepare</button> */}
       <button onClick={_ => pred(ueData)}>test predict</button>
-      {/* <button disabled={!link}><a href={link}>download</a></button> */}
+      <button disabled={!link}><a href={link}>download</a></button>
       {/* <button disabled={!link} onClick={upload}>upload</button> */}
     </div>
   )
