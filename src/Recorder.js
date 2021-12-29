@@ -159,6 +159,14 @@ const Recorder = props => {
         tftensor, [48, 48], true
       ).slice([0, 0, 0], [48, 48, 1]).reshape([1, 48, 48, 1])
       // .print()
+    // const rd = resized.dataSync();
+    const tr = tf.transpose(resized)
+    const rr = tf.reverse(tr, [2])
+    const rd = rr.dataSync();
+    const ard = Array.from(rd)
+    const srd = JSON.stringify(ard)
+    const ra = resized.arraySync();
+    console.log('resized', rd, ard, srd, ra)
     pred(resized)
     // document.getElementById('canvas').toBlob(blob => {
     //   blob.arrayBuffer().then(buffer => {
@@ -194,6 +202,7 @@ const Recorder = props => {
     // setScore(score)
     console.log('predictOut', predictOut)
     console.log('score', score, label)
+    predictOut.print()
     predictOut.dispose();
   }
 
